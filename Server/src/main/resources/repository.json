@@ -1,0 +1,19 @@
+{
+  "Teacher" : {
+    "id" : 0,
+    "name" : "Helen",
+    "coordinates" : {
+      "x" : 34543.0,
+      "y" : 654543
+    },
+    "height" : 1.67,
+    "weight" : 56.7,
+    "eyeColor" : "BLUE",
+    "hairColor" : "WHITE",
+    "location" : {
+      "x" : -654345,
+      "y" : -345345.0,
+      "z" : 34543.0
+    }
+  }
+}
