@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class CollectionManager implements Manager {
     private final Hashtable<String, Person> collection;
-    private final JsonHandler handler;
+    private JsonHandler handler = null;
     private final DependentSet<Integer> uniqueSet = new DependentSet<>();
     private final LocalDateTime date;
 
@@ -36,6 +36,9 @@ public class CollectionManager implements Manager {
             if (!uniqueSet.add(collection.get(key).getId()))
                 throw new NonUniqueIdException(Messages.getMessage("warning.non_unique_id"));
         }
+    }
+    public  CollectionManager(Hashtable<String, Person> collection) {
+        this.collection = collection;
     }
 
     public static class DependentSet<T extends Comparable<T>> implements Serializable {

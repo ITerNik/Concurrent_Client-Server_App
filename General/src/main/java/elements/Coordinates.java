@@ -13,6 +13,10 @@ public class Coordinates implements Comparable<Coordinates>, Serializable {
 
     public Coordinates() {
     }
+    public Coordinates(double x, int y) {
+        this.x = x;
+        this.y = y;
+    }
 
     @Builder(field = "parameter.coordinate_x", order = 1)
     public void setX(String x) {

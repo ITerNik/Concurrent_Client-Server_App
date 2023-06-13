@@ -6,6 +6,7 @@ import exceptions.BadParametersException;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Date;
 
 public class Person implements Comparable<Person>, Serializable {
     private int id;
@@ -21,6 +22,18 @@ public class Person implements Comparable<Person>, Serializable {
 
 
     public Person() {
+    }
+    public Person(int id, String name, Coordinates coordinates, LocalDate creationDate, double height,
+                  double weight, EyeColor eyeColor, HairColor hairColor, Location location) {
+        this.id = id;
+        this.name = name;
+        this.coordinates = coordinates;
+        this.creationDate = creationDate;
+        this.height = height;
+        this.weight = weight;
+        this.eyeColor = eyeColor;
+        this.hairColor = hairColor;
+        this.location = location;
     }
 
 

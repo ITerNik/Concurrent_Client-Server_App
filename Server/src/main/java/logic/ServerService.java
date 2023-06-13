@@ -31,8 +31,8 @@ public class ServerService implements Service {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public ServerService(String fileName) throws StartingProblemException, NonUniqueIdException {
-        Manager manager = new CollectionManager(fileName);
+    public ServerService() throws StartingProblemException, NonUniqueIdException {
+        Manager manager = new DBManager("s367558", "vMQDhOjsSn4kSn02");
         this.builder = new CommandBuilder(manager);
         initConnection();
     }
@@ -201,7 +201,7 @@ public class ServerService implements Service {
      */
     public static void main(String[] args) {
         try {
-            Service service = new ServerService(Constants.HOST_FILE_PATH);
+            Service service = new ServerService();
             service.run();
         } catch (StartingProblemException | NonUniqueIdException e) {
             System.out.println(e.getMessage());
