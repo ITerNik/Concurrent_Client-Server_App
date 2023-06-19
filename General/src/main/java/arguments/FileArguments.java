@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import constants.Messages;
+import elements.User;
 import exceptions.BadParametersException;
 import logic.FileDevice;
 import logic.IODevice;
@@ -15,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Класс представляет считыватель аргументов из файла
@@ -27,6 +29,12 @@ public class FileArguments implements Readable {
      */
     @JsonIgnore
     private HashMap<String, ArgumentReader> commandInfo = new HashMap<>();
+    /**
+     * Поле для мониторинга повторяющихся файлов в цепочке execute_script.
+     * При десериализации создается копия экземпляра данного класса, поэтому использование
+     * модификатора static безопасно
+     */
+    private static HashSet<Path> fileLog = new HashSet<>();
 
     public FileArguments() {
     }
@@ -51,13 +59,14 @@ public class FileArguments implements Readable {
         ArrayList<String> commands = new ArrayList<>();
         if (Files.notExists(file)) throw new BadParametersException(
                 Messages.getMessage("warning.format.file_not_found", file.getFileName()));
+        if (!fileLog.add(file.toAbsolutePath())) throw new BadParametersException(Messages.getMessage("warning.cyclic_file"));
         try {
             FileDevice input = new FileDevice(file);
             while (input.hasNextLine()) {
                 String commandName = input.read();
                 ArgumentReader current = commandInfo.get(commandName);
                 current.read(input);
-                Query query = new Query(commandName, current);
+                Query query = new Query(commandName, current, new User());
                 commands.add(mapper.writerFor(Query.class).writeValueAsString(query));
             }
         } catch (IOException e) {
@@ -79,5 +88,9 @@ public class FileArguments implements Readable {
 
     public HashMap<String, ArgumentReader> getCommandInfo() {
         return commandInfo;
+    }
+
+    public static HashSet<Path> getFileLog() {
+        return fileLog;
     }
 }

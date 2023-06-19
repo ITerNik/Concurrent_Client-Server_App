@@ -3,9 +3,11 @@ package logic;
 import constants.Messages;
 import elements.Location;
 import elements.Person;
+import elements.User;
 import exceptions.BadParametersException;
 import exceptions.NonUniqueIdException;
 import exceptions.StartingProblemException;
+import sendings.Response;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -18,7 +20,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class CollectionManager implements Manager {
-    private final Hashtable<String, Person> collection;
+    private final Map<String, Person> collection;
     private JsonHandler handler = null;
     private final DependentSet<Integer> uniqueSet = new DependentSet<>();
     private final LocalDateTime date;
@@ -37,8 +39,8 @@ public class CollectionManager implements Manager {
                 throw new NonUniqueIdException(Messages.getMessage("warning.non_unique_id"));
         }
     }
-    public  CollectionManager(Hashtable<String, Person> collection) {
-        this.collection = collection;
+    public  CollectionManager(Map<String, Person> collection) {
+        this.collection = Collections.synchronizedMap(collection);
     }
 
     public static class DependentSet<T extends Comparable<T>> implements Serializable {
@@ -176,7 +178,7 @@ public class CollectionManager implements Manager {
     }
 
     @Override
-    public String toString() {
+    public String show() {
         if (collection.isEmpty()) {
             return Messages.getMessage("message.empty");
         }
@@ -185,5 +187,10 @@ public class CollectionManager implements Manager {
             res.append(String.format("%s \"%s\":\n%s\n\n", Messages.getMessage("parameter.person"), key, collection.get(key)));
         }
         return res.toString();
+    }
+
+    @Override
+    public Response checkUser(User user) {
+        return new Response();
     }
 }

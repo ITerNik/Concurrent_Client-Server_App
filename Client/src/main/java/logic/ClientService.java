@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import constants.Constants;
 import constants.Messages;
+import elements.User;
 import exceptions.BadConnectionException;
 import exceptions.BadParametersException;
 import sendings.Query;
@@ -15,6 +16,8 @@ import sendings.Response;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -22,6 +25,7 @@ import java.util.*;
  */
 public class ClientService implements Service {
     private final CliDevice cio;
+    private User user;
     private InputStream inputStream;
     private OutputStream outputStream;
     private HashMap<String, ArgumentReader> commandInfo;
@@ -35,6 +39,7 @@ public class ClientService implements Service {
     public ClientService(CliDevice cio) throws BadConnectionException {
         this.cio = cio;
         initConnection();
+        authorize();
     }
 
     /**
@@ -57,7 +62,7 @@ public class ClientService implements Service {
             try {
                 arguments.read(cio);
 
-                Query query = new Query(commandName, arguments);
+                Query query = new Query(commandName, arguments, user);
                 outputStream.write(mapper.writeValueAsBytes(query));
                 outputStream.flush();
 
@@ -67,8 +72,29 @@ public class ClientService implements Service {
                 System.out.println(e.getMessage());
             } catch (SocketException e) {
                 initConnection();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void authorize() throws BadConnectionException {
+        AuthorizationDevice auth = new AuthorizationDevice();
+        boolean authorized = auth.getUserStatus();
+        while (true) {
+            if (authorized) user = auth.authorizeUser();
+            else user = auth.registerUser();
+            try {
+                outputStream.write(mapper.writeValueAsBytes(user));
+                outputStream.flush();
+
+                Response response = mapper.readValue(inputStream, Response.class);
+                if (response.getReport().equals(Constants.OK_STATUS)) break;
+                System.out.println(response.getReport());
+            } catch (SocketException e) {
+                initConnection();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -146,6 +172,7 @@ public class ClientService implements Service {
      * Точка начала работы клиентского приложения
      */
     public static void main(String[] args) {
+
         try (CliDevice cio = new CliDevice()) {
             Service client = new ClientService(cio);
             client.run();

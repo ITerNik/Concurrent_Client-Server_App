@@ -29,7 +29,7 @@ public class ShowCommand extends AbstractCommand {
 
     @Override
     public String getReport() {
-        return manager.toString();
+        return manager.show();
     }
 
     @Override

@@ -1,23 +1,22 @@
 package logic;
 
+import constants.Constants;
 import constants.Messages;
 import elements.*;
+import sendings.Response;
 
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DBManager implements Manager {
     private String login;
     private String password;
-    private CollectionManager manager;
+    private final CollectionManager manager;
     private Connection db;
-    private final Hashtable<String, Person> collection = new Hashtable<>();
+    private final Map<String, Person> collection = Collections.synchronizedMap(new Hashtable<>());
 
     public DBManager(String login, String password) {
         this.login = login;
@@ -139,18 +138,17 @@ public class DBManager implements Manager {
     }
 
     @Override
-    public void clear() { //TODO: restructure interface
+    public void clear() {
+        manager.clear();
     }
 
     @Override
-    public void save() throws IOException {
+    public void save() throws IOException { //TODO: restructure interface
     }
 
     @Override
     public int countByWeight(double weight) {
-        return (int) collection.values().stream()
-                .filter(person -> Double.compare(person.getWeight(), weight) == 0)
-                .count();
+        return manager.countByWeight(weight);
     }
 
     @Override
@@ -173,7 +171,6 @@ public class DBManager implements Manager {
         try {
             ResultSet res = db.createStatement().executeQuery("SELECT MIN(creationdate) FROM person");
             LocalDate date = res.next() ? res.getDate(1).toLocalDate() : null;
-            DateTimeFormatter format = DateTimeFormatter.ofPattern("dd MMM yyyy hh:mm:ss");
             return String.format(Messages.getMessage("collection.type") + ": %s\n" +
                             Messages.getMessage("collection.elements") + ": %s\n" +
                             Messages.getMessage("collection.date") + ": %s\n" +
@@ -182,6 +179,46 @@ public class DBManager implements Manager {
         } catch (SQLException e) {
             e.printStackTrace();
             return "No info";
+        }
+    }
+    public String show() {
+        return manager.show();
+    }
+
+    @Override
+    public Response checkUser(User user) {
+        try {
+            if (user.getStatus()) {
+               return checkAuthorized(user.getLogin(), user.getPassword()) ?
+                       new Response(Constants.OK_STATUS) : new Response("Неверный логин или пароль");
+            } else {
+                return addUnauthorized(user.getLogin(), user.getPassword()) ?
+                        new Response(Constants.OK_STATUS) : new Response("Такой пользователь уже существует");
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Response("Ошибка авторизации");
+        }
+    }
+    private boolean checkAuthorized(String login, String password) throws SQLException {
+        PreparedStatement statement = db.prepareStatement("SELECT EXISTS(SELECT 1 FROM users WHERE login = ? AND password = ?)");
+        statement.setString(1, login);
+        statement.setString(2, password);
+        ResultSet res = statement.executeQuery();
+        return res.next() && res.getBoolean(1);
+    }
+    private boolean addUnauthorized(String login, String password) throws SQLException {
+        ResultSet res = db.createStatement().executeQuery("SELECT EXISTS (SELECT 1 FROM users WHERE login = '" + login + "')");
+        if (res.next() && !res.getBoolean(1)) {
+            PreparedStatement statement = db.prepareStatement("INSERT INTO users (login, password, admin_roots) VALUES (?, ?, ?)");
+            statement.setString(1, login);
+            statement.setString(2, password);
+            statement.setBoolean(3, false);
+            statement.execute();
+            return true;
+        } else {
+            return false;
         }
     }
 }

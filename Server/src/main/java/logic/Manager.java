@@ -2,6 +2,8 @@ package logic;
 
 import elements.Location;
 import elements.Person;
+import elements.User;
+import sendings.Response;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,6 +34,7 @@ public interface Manager extends Serializable {
     String findById(int id);
 
     String getInfo();
-
+    String show();
+    Response checkUser(User user);
 
 }

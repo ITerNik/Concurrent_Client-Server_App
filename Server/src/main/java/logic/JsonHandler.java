@@ -12,6 +12,7 @@ import exceptions.StartingProblemException;
 
 import java.io.*;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Scanner;
 
 public class JsonHandler implements Closeable {
@@ -42,7 +43,7 @@ public class JsonHandler implements Closeable {
         new FileOutputStream(file).close();
     }
 
-    public void writeData(Hashtable collection) throws IOException {
+    public void writeData(Map<String, Person> collection) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.registerModule(new JavaTimeModule());

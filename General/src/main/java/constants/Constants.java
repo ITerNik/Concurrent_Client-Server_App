@@ -11,6 +11,10 @@ public abstract class Constants {
     public static final int RETRY_DELAY = 5000;
     // Размер буфера для чтения по-умолчанию
     public static final int BUFFER_SIZE = 1024;
+    public static final String PASSWORD_CONSTRAINT = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\w\\s]|[_]).{8,}$";
+    public static final String ADMIN_LOGIN = "s367558";
+    public static final String ADMIN_PASSWORD = "vMQDhOjsSn4kSn02";
+    public static final String OK_STATUS = "Авторизация прошла успешно";
     // Путь к файлу с коллекцией
     public static final String FILE_PATH = ".\\repository.json";
 
